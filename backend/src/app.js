@@ -2,6 +2,8 @@ const express = require("express");
 const config = require("./config");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const db = require("../models");
+const usuarioRoutes = require("./routes/usuario.routes");
 
 const allowedOrigins = ["http://localhost:5173"];
 
@@ -18,5 +20,15 @@ app.use(
 
 app.set("port", config.app.port);
 app.use(express.json());
+app.use("/usuario", usuarioRoutes);
+
+db.sequelize
+  .authenticate()
+  .then(() => {
+    console.log("Base de datos conectada");
+  })
+  .catch((err) => {
+    console.error("Error BD:", err);
+  });
 
 module.exports = app;
