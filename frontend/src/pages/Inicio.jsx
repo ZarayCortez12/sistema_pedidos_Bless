@@ -10,9 +10,11 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Spin } from "antd";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
+import { login } from "../features/usuario.slice";
+import { obtenerUsuarioActual } from "../features/usuario.slice";
 
 const validarDatos = yup.object().shape({
-  numero_documento: yup
+  documento: yup
     .string()
     .matches(/^[0-9]+$/, "Solo se permiten números")
     .required("Debe ingresar un número de identificación"),
@@ -25,14 +27,24 @@ function Inicio() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const usuario = useSelector((state) => state.usuario.usuario);
 
   useEffect(() => {
     document.title = "Organización Bless | Iniciar Sesión";
+    if (!usuario)
+      dispatch(obtenerUsuarioActual())
+        .unwrap()
+        .then((res) => {
+          if (res.usuario) navigate(`/${res.usuario.rol_activo}/inicio`);
+        })
+        .catch((err) => {
+          setLoading(false);
+        });
   }, []);
 
   const formik = useFormik({
     initialValues: {
-      numero_documento: "",
+      documento: "",
       clave: "",
     },
     validationSchema: validarDatos,
@@ -44,6 +56,42 @@ function Inicio() {
       }
 
       console.log(values);
+      dispatch(login(values))
+        .unwrap()
+        .then((response) => {
+          setLoading(false);
+          console.log(response);
+
+          if (response.type === "info") {
+            toast.info(response.message);
+            return;
+          }
+
+          if (response.type === "warning") {
+            toast.warning(response.message);
+            return;
+          }
+
+          if (response.type === "error") {
+            toast.error(response.message);
+            return;
+          }
+
+          toast.success(response.message);
+          localStorage.setItem("selectedMenuKey", "inicio");
+          setTimeout(() => {
+            dispatch(obtenerUsuarioActual())
+              .unwrap()
+              .then(() => {
+                navigate(`/${response.usuario.rol_activo}/inicio`);
+              });
+          }, 3500);
+        })
+        .catch((error) => {
+          toast.error(error.message);
+          setLoading(false);
+          console.log(error);
+        });
     },
   });
 
@@ -99,7 +147,7 @@ function Inicio() {
                 </span>
                 <input
                   type="text"
-                  name="numero_documento"
+                  name="documento"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   onInput={(e) => {
@@ -107,11 +155,11 @@ function Inicio() {
                   }}
                   placeholder="Número de documento"
                   className={`w-full pl-11 pr-4 py-3 bg-white/10 border rounded-xl text-white placeholder:text-blue-300/50 focus:outline-none focus:ring-2 transition-all duration-300 font-inter${
-                    formSubmitted && formik.errors.numero_documento
+                    formSubmitted && formik.errors.documento
                       ? "border-red-400 focus:ring-red-400/20"
                       : "border-white/20 focus:ring-white/20 focus:bg-white/15"
                   }`}
-                  {...formik.getFieldProps("numero_documento")}
+                  {...formik.getFieldProps("documento")}
                 />
               </div>
             </div>
@@ -153,14 +201,14 @@ function Inicio() {
               type="submit"
               disabled={
                 loading ||
-                !formik.values.numero_documento ||
+                !formik.values.documento ||
                 !formik.values.clave ||
                 !formik.isValid
               }
               className={`w-full font-bold py-3.5 rounded-xl transition-all duration-300 shadow-lg transform flex items-center justify-center mt-4 font-poppins
                             ${
                               loading ||
-                              !formik.values.numero_documento ||
+                              !formik.values.documento ||
                               !formik.values.clave ||
                               !formik.isValid
                                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"

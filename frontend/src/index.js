@@ -18,7 +18,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <Provider store={reduxConfig}>
       <ConfigProvider locale={esES}>
         <App />
-        <ToastContainer />
       </ConfigProvider>
     </Provider>
   </React.StrictMode>,
