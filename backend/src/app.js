@@ -6,6 +6,8 @@ const db = require("../models");
 const usuarioRoutes = require("./routes/usuario.routes");
 const productosRoutes = require("./routes/productos.routes");
 const tallasRoutes = require("./routes/talla.routes");
+const clientesRoutes = require("./routes/clientes.routes");
+const pedidosRoutes = require("./routes/pedidos.routes");
 
 const allowedOrigins = ["http://localhost:5173"];
 
@@ -27,6 +29,8 @@ app.use(express.json());
 app.use("/usuario", usuarioRoutes);
 app.use("/productos", productosRoutes);
 app.use("/tallas", tallasRoutes);
+app.use("/clientes", clientesRoutes);
+app.use("/pedidos", pedidosRoutes);
 
 db.sequelize
   .authenticate()

@@ -16,6 +16,11 @@ const listarProductos = async (req, res) => {
         },
       ],
     });
+
+    if (!productos) {
+      return res.status(404).json({ message: "No hay productos" });
+    }
+
     return res.json({
       message: "Productos obtenidos correctamente",
       productos,
@@ -279,6 +284,39 @@ const agregarTallaAProducto = async (req, res) => {
   }
 };
 
+const listarProductosConTallas = async (req, res) => {
+  try {
+    console.log("Ingreso a la funcion:");
+
+    const productos = await Producto.findAll({
+      include: [
+        {
+          model: ProductoTalla,
+          include: [
+            {
+              model: Talla,
+              attributes: ["id", "nombre"],
+            },
+          ],
+        },
+      ],
+    });
+
+
+    if (!productos) {
+      return res.status(404).json({ message: "No hay producto" });
+    }
+
+    return res.json({
+      message: "Productos obtenidos correctamente",
+      productos,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+};
+
 module.exports = {
   listarProductos,
   agregarProducto,
@@ -286,4 +324,5 @@ module.exports = {
   eliminarProducto,
   ingresarStockAProducto,
   agregarTallaAProducto,
+  listarProductosConTallas,
 };
