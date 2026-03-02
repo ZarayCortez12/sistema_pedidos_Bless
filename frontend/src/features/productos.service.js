@@ -73,6 +73,17 @@ const agregarTallaAProducto = async (datos) => {
   }
 };
 
+const listarProductosConTallas = async () => {
+  try {
+    const response = await axios.get(`${base_url}/productos/tallas`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const ProductosService = {
   listarProductos,
   agregarProducto,
@@ -80,6 +91,7 @@ const ProductosService = {
   eliminarProducto,
   ingresarStockAProducto,
   agregarTallaAProducto,
+  listarProductosConTallas,
 };
 
 export default ProductosService;

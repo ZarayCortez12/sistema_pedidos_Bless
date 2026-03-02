@@ -128,36 +128,28 @@ function ListaProductos() {
 
   const onFinishStock = (values) => {
     try {
-      // 1. Validar que tengamos un producto seleccionado
       if (!selectedProductForStock) return;
 
-      // 2. Extraer los datos del formulario (values.actualizar es un objeto { tallaId: cantidad })
       const cambios = values.actualizar;
 
       if (!cambios || Object.keys(cambios).length === 0) {
         return toast.info("No has ingresado ninguna cantidad para actualizar.");
       }
 
-      // 3. Formatear el array de objetos con el ID de ProductoTalla y el nuevo stock
       const actualizar = Object.entries(cambios)
         .filter(
           ([_, cantidad]) =>
             cantidad !== undefined && cantidad !== null && cantidad > 0,
         )
         .map(([tallaId, cantidad]) => {
-          // Buscamos en el producto seleccionado el objeto que corresponde a esta talla
-          // para obtener el ID de la tabla pivot (ProductoTalla)
           const relacionTalla = selectedProductForStock.ProductoTallas.find(
             (pt) =>
               (pt.Talla?.id || pt.id_talla).toString() === tallaId.toString(),
           );
 
           return {
-            // Si tu backend pide el ID de la relación producto-talla:
             id_producto_talla: relacionTalla?.id,
-            // El stock que se va a sumar (o el nuevo total, según tu backend)
             nuevo_stock: cantidad,
-            // Opcional: podrías mandar el id_talla si el backend lo requiere
             id_talla: parseInt(tallaId),
           };
         });
@@ -166,7 +158,6 @@ function ListaProductos() {
         return toast.warning("Ingresa una cantidad válida mayor a cero.");
       }
 
-      // 4. Estructura final para enviar al dispatch
       const dataParaEnviar = {
         id_producto: selectedProductForStock.id,
         actualizar: actualizar,
@@ -294,298 +285,6 @@ function ListaProductos() {
       ),
     },
   ];
-
-  const handleAdd = () => {
-    /**
-    form.validateFields().then((values) => {
-      console.log("Datos a agregar:", values);
-      values.descripcion = values.descripcion
-        .replace(/[\r\n]+/g, " ")
-        .replace(/\s{2,}/g, " ")
-        .trim();
-
-      const normalizarTexto = (texto) => {
-        return texto
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-zA-Z\s]/g, "")
-          .replace(/\s+/g, " ")
-          .trim()
-          .toLowerCase();
-      };
-
-      const nuevaDescripcion = normalizarTexto(values.descripcion);
-
-      const nombre = values.nombre_categoria.trim().toLowerCase();
-      const yaExiste = categorias.some(
-        (cat) => cat.nombre_categoria.trim().toLowerCase() === nombre,
-      );
-
-      if (yaExiste) {
-        toast.error("Esta categoría ya existe en la edición actual.");
-        return;
-      }
-
-      const nuevaCategoria = {
-        nombre_categoria: values.nombre_categoria.trim(),
-      };
-
-      dispatch(agregarCategoria(nuevaCategoria))
-        .unwrap()
-        .then((res) => {
-          dispatch(
-            agregarCategoriaEdicion({
-              id_edicion: edicionEnProceso.id_edicion,
-              id_categoria: res.categoria.id_categoria,
-              numero_ganadores: values.numero_ganadores,
-              descripcion: nuevaDescripcion,
-            }),
-          )
-            .unwrap()
-            .then((res) => {
-              toast.success(res.message);
-              setIsModalVisible(false);
-              form.resetFields();
-            })
-            .catch((err) => {
-              console.log(err);
-              console.error("Error al crear o asociar categoría:", err);
-              toast.error(err.message);
-            });
-        })
-        .catch((err) => {
-          console.error("Error al crear o asociar categoría:", err);
-          toast.error(err.message);
-        });
-    });
-     */
-  };
-
-  const handleEditarCategoria = () => {
-    /** 
-    form.validateFields().then((values) => {
-      console.log("Datos a editar:", values);
-      console.log("Categoria seleccionada:", categoriaSeleccionada);
-
-      const idCategoria = categoriaSeleccionada?.id_categoria;
-
-      if (!idCategoria) {
-        toast.error("No se pudo identificar la categoria a editar");
-        return;
-      }
-
-      const datosActualizados = {
-        id_edicion_categoria:
-          categoriaSeleccionada.EdicionCategoria.id_edicion_categoria,
-        numero_ganadores: values.numero_ganadores,
-      };
-
-      dispatch(editarCategoriaEdicion(datosActualizados))
-        .unwrap()
-        .then((res) => {
-          toast.success(res.message);
-          setIsEditMode(false);
-          setCategoriaSeleccionada(null);
-          setIsModalVisible(false);
-        });
-
-      console.log("Datos que van para el backend:", datosActualizados);
-    });
-    */
-  };
-
-  const handleDelete = (datos) => {
-    console.log("Eliminando categoria:", datos);
-    Modal.confirm({
-      title: (
-        <div
-          style={{
-            fontFamily: "Inter",
-            display: "flex",
-            fontSize: "1rem",
-          }}
-        >
-          ¿Estás seguro de eliminar esta categoría de la edición?
-        </div>
-      ),
-      content: (
-        <div
-          style={{
-            marginTop: "15px",
-          }}
-        >
-          <div style={{ display: "flex", marginBottom: "10px" }}>
-            <BiSolidCategory
-              style={{
-                fontSize: "20px",
-                color: "#e10318",
-                marginRight: "15px",
-              }}
-            />
-            <div style={{ fontFamily: "Inter", marginLeft: "-10px" }}>
-              <strong>Nombre Categoría: </strong>
-              {capitalizeFirstLetter(datos.nombre_categoria)}
-              <br />
-            </div>
-          </div>
-          <span
-            style={{
-              display: "flex",
-              background: "hsl(354, 65%, 85%)",
-              padding: "10px",
-              borderRadius: "10px",
-              marginLeft: "-30px",
-              fontFamily: "Inter",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "60px",
-            }}
-          >
-            <IoMdAlert
-              className="text-red-500"
-              style={{
-                fontSize: "70px",
-                marginRight: "5px",
-                marginTop: "-10px",
-              }}
-            />
-            <p style={{ fontSize: "12px", color: "#333" }}>
-              <center>
-                Recuerda que el acción de eliminar es permanente y no se podrá
-                recuperar la información de la categoria.
-              </center>
-            </p>
-          </span>
-        </div>
-      ),
-      okText: "Sí, eliminar",
-      okType: "danger",
-      cancelText: "Cancelar",
-      centered: true,
-      onOk() {
-        dispatch(
-          eliminarCategoriaEdicion(datos.EdicionCategoria.id_edicion_categoria),
-        )
-          .unwrap()
-          .then((res) => {
-            toast.success(res.message);
-          })
-          .catch((error) => {
-            toast.error(error.message);
-          });
-      },
-    });
-  };
-
-  const handleDesactivarClick = (datos) => {
-    let observacion = "";
-
-    Modal.confirm({
-      icon: null,
-      title: (
-        <div
-          style={{
-            fontFamily: "Inter",
-            display: "flex",
-            fontSize: "1rem",
-          }}
-        >
-          ¿Está seguro de inactivar esta categoría de la edición en proceso?
-        </div>
-      ),
-
-      content: (
-        <div style={{ marginTop: "15px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "5px",
-            }}
-          >
-            <BiSolidCategory
-              style={{
-                fontSize: "20px",
-                color: "#e10318",
-                marginRight: "15px",
-              }}
-            />
-            <div style={{ fontFamily: "Inter", marginLeft: "-10px" }}>
-              <strong>Nombre: </strong>
-              {capitalizeFirstLetter(datos.nombre_categoria)}
-            </div>
-          </div>
-
-          <div style={{ fontFamily: "Inter" }}>
-            <strong>
-              Motivo de Inactivación <span style={{ color: "red" }}>*</span>
-            </strong>
-            <Input.TextArea
-              rows={3}
-              placeholder="Ingrese el motivo de la inactivación"
-              style={{ marginTop: "5px", resize: "none" }}
-              onChange={(e) => {
-                observacion = e.target.value;
-              }}
-              className="bg-gray-200! font-inter"
-            />
-          </div>
-          <span
-            style={{
-              display: "flex",
-              background: "hsl(354, 65%, 85%)",
-              padding: "10px",
-              borderRadius: "10px",
-              fontFamily: "Inter",
-              alignItems: "center",
-              marginTop: "10px",
-            }}
-          >
-            <IoMdAlert
-              style={{
-                fontSize: "65px",
-                color: "#e10318",
-                marginRight: "8px",
-              }}
-            />
-            <p style={{ fontSize: "12px", color: "#333", margin: 0 }}>
-              Recuerda que cancelar esta categoría es una acción permanente y no
-              se podrá recuperar la información ni activar de nuevo para
-              postulaciones.
-            </p>
-          </span>
-        </div>
-      ),
-
-      okText: "Sí, inactivar",
-      okType: "danger",
-      cancelText: "Cancelar",
-      centered: true,
-      onOk() {
-        if (!observacion.trim()) {
-          toast.warning("Debe ingresar el motivo de la cancelación");
-          return Promise.reject();
-        }
-
-        return dispatch(
-          cambiarEstado({
-            id_edicion_categoria: datos.EdicionCategoria.id_edicion_categoria,
-            estado: "inactivo",
-            observacion: observacion,
-          }),
-        )
-          .unwrap()
-          .then((res) => {
-            toast.success(
-              res.message ? "Categoria inactivada correctamente" : null,
-            );
-          })
-          .catch((error) => {
-            toast.error(error.message);
-          });
-      },
-    });
-  };
 
   const handleAgregarTalla = (nombreTalla) => {
     try {
@@ -781,8 +480,6 @@ function ListaProductos() {
       console.error("Error al procesar datos:", error);
     }
   };
-
-  const hoy = new Date().toISOString().split("T")[0];
 
   const EmptyTable = () => (
     <div className="flex flex-col items-center justify-center py-10">
@@ -1128,7 +825,6 @@ function ListaProductos() {
             <p className="text-[11px] font-bold text-[#1a2e4c] mb-3 uppercase tracking-wider font-poppins">
               ¿Falta una talla? Vincúlala aquí:
             </p>
-
             <div className="flex gap-2">
               <Form.Item name="nueva_talla_id" className="flex-1 mb-0">
                 <Select

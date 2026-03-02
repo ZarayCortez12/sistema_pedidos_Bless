@@ -109,6 +109,24 @@ export const agregarTallaAProducto = createAsyncThunk(
   },
 );
 
+export const listarProductosConTallas = createAsyncThunk(
+  "productos/listarProductosConTallas",
+  async (_, thunkAPI) => {
+    try {
+      const response = await ProductosService.listarProductosConTallas();
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue({
+        message:
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message,
+        status: error.response?.status,
+      });
+    }
+  },
+);
+
 export const resetState = createAction("Reset_all");
 
 const initialState = {
@@ -171,6 +189,11 @@ const productosSlice = createSlice({
           (p) => p.id === action.payload.producto.id,
         );
         state.productos[indexProducto] = action.payload.producto;
+      })
+      .addCase(listarProductosConTallas.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.productos = action.payload.productos;
       })
       .addCase(resetState, (state) => {
         state.productos = null;
