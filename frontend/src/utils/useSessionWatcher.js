@@ -2,27 +2,30 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { refrescarAccesToken } from "../features/usuario.slice";
 import { useDispatch, useSelector } from "react-redux";
+import { use } from "react";
+import { logout } from "../features/usuario.slice";
 
 export const useSessionWatcher = (token) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { usuario, expiresAt } = useSelector((state) => state.usuario);
+  console.log(useSelector((state) => state.usuario));
+
+  const expiresAt = useSelector((state) => state.usuario.expiresAt);
+  console.log("ExpiresAt:", expiresAt);
 
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    if (!expiresAt) return; // Aún no se ha iniciado sesión
+    if (!expiresAt) return;
 
     const timeLeft = expiresAt - Date.now();
+    console.log("Time left:", timeLeft);
 
-    // Si ya expiró → cerrar sesión inmediatamente
     if (timeLeft <= 0) {
       navigate("/");
       return;
     }
-
-    // Tiempo para abrir el modal (1 minuto antes de expirar)
     const warningTime = timeLeft - 60_000;
 
     let warningTimer;
@@ -32,7 +35,6 @@ export const useSessionWatcher = (token) => {
         setShowModal(true);
       }, warningTime);
     } else {
-      // Si ya falta menos de 1 minuto → mostrar modal de una vez
       setShowModal(true);
     }
 
@@ -41,7 +43,6 @@ export const useSessionWatcher = (token) => {
     };
   }, [expiresAt, navigate]);
 
-  // Confirmar → refrescar sesión
   const handleConfirm = async () => {
     try {
       await dispatch(refrescarAccesToken()).unwrap();
@@ -52,10 +53,12 @@ export const useSessionWatcher = (token) => {
     }
   };
 
-  // Cancelar → cerrar sesión
   const handleCancel = () => {
-    setShowModal(false);
-    navigate("/");
+    dispatch(logout());
+    setTimeout(() => {
+      setShowModal(false);
+      navigate("/");
+    }, 2000);
   };
 
   return { showModal, handleConfirm, handleCancel };

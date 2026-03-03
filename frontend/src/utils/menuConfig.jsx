@@ -6,7 +6,6 @@ import { AiFillProduct } from "react-icons/ai";
 import { MdOutlineProductionQuantityLimits } from "react-icons/md";
 
 export const useMenusPorRol = () => {
-
   const menusPorRol = useMemo(() => {
     const menuAdministrador = [
       {
@@ -28,11 +27,6 @@ export const useMenusPorRol = () => {
         key: "pedidos",
         icon: <MdOutlineProductionQuantityLimits style={estiloIcono} />,
         label: <span style={estiloLabel}>Pedidos</span>,
-      },
-      {
-        key: "reportes",
-        icon: <HiClipboardDocumentList style={estiloIcono} />,
-        label: <span style={estiloLabel}>Reportes</span>,
       },
     ];
 

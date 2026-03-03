@@ -96,24 +96,20 @@ const usuarioSlice = createSlice({
         state.isSuccess = true;
         state.usuario = action.payload.usuario;
         state.message = action.payload.message;
-        if (action.payload.expiresIn) {
-          state.expiresAt = Date.now() + action.payload.expiresIn * 1000;
-        }
+        state.expiresAt = Date.now() + action.payload.expiresIn * 1000;
       })
       .addCase(obtenerUsuarioActual.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload.message;
-        console.log("Usuario desde slice obtenerUsuario:", action.payload);
         state.usuario = action.payload.usuario;
-        state.expiresAt = null;
+        state.expiresAt = Date.now() + action.payload.expiresIn * 1000;
       })
       .addCase(refrescarAccesToken.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         //state.message = action.payload.message;
         //state.usuario = action.payload.usuario;
-        state.expiresAt = null;
       })
       .addCase(logout.fulfilled, (state, action) => {
         state.isLoading = false;

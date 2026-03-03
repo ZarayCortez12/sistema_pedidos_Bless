@@ -48,6 +48,7 @@ import { listarTallas, agregarTalla } from "../features/talla.slice";
 
 function ListaProductos() {
   const dispatch = useDispatch();
+  const usuario = useSelector((state) => state.usuario.usuario);
   const productos = useSelector((state) => state.productos.productos);
   const tallas = useSelector((state) => state.tallas.tallas);
 
@@ -81,6 +82,7 @@ function ListaProductos() {
   });
 
   useEffect(() => {
+    if (!usuario) dispatch(obtenerUsuarioActual());
     document.title = "Organización Bless | Productos";
 
     dispatch(listarProductos())
@@ -247,23 +249,41 @@ function ListaProductos() {
       }),
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="Añadir Stock">
+          <Tooltip
+            title={
+              usuario.rol_activo !== "administrador"
+                ? "Acción no permitida"
+                : "Añadir Stock"
+            }
+          >
             <Button
+              disabled={usuario.rol_activo !== "administrador"}
               type="text"
-              className="text-emerald-600! hover:text-emerald-700!"
+              className={`text-emerald-600! hover:text-emerald-700! ${
+                usuario.rol_activo !== "administrador"
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               icon={<PackagePlus size={18} />}
               onClick={() => handleStockClick(record)}
             />
           </Tooltip>
-          <Tooltip title="Editar">
+          <Tooltip
+            title={
+              usuario.rol_activo !== "administrador"
+                ? "Acción no permitida"
+                : "Editar"
+            }
+          >
             <Button
+              disabled={usuario.rol_activo !== "administrador"}
               type="text"
-              icon={
-                <Pencil
-                  size={18}
-                  className="text-blue-600! hover:text-blue-700!"
-                />
-              }
+              className={`text-blue-600! hover:text-blue-700! ${
+                usuario.rol_activo !== "administrador"
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              icon={<Pencil size={18} />}
               onClick={() => handleEditClick(record)}
             />
           </Tooltip>
@@ -271,15 +291,24 @@ function ListaProductos() {
             title="¿Eliminar?"
             onConfirm={() => handleEliminarProducto(record)}
           >
-            <Button
-              type="text"
-              icon={
-                <Trash2
-                  size={18}
-                  className="text-red-500! hover:text-red-600!"
-                />
+            <Tooltip
+              title={
+                usuario.rol_activo !== "administrador"
+                  ? "Acción no permitida"
+                  : "Eliminar"
               }
-            />
+            >
+              <Button
+                disabled={usuario.rol_activo !== "administrador"}
+                type="text"
+                className={`text-red-500! hover:text-red-600! ${
+                  usuario.rol_activo !== "administrador"
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                icon={<Trash2 size={18} />}
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -538,6 +567,7 @@ function ListaProductos() {
 
         <div className="flex items-center gap-3">
           <Button
+            disabled={usuario.rol_activo !== "administrador"}
             type="primary"
             icon={<IoMdAddCircle size={18} />}
             onClick={() => {

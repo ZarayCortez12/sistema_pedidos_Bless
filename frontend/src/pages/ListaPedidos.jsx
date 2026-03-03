@@ -9,6 +9,7 @@ import {
   Select,
   Tooltip,
   Space,
+  DatePicker,
 } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -22,7 +23,7 @@ import { Eye, Trash2, Check } from "lucide-react";
 import { Pagination } from "antd";
 import { ConfigProvider } from "antd";
 import esES from "antd/es/locale/es_ES";
-import { Statistic } from "antd"; // Asegúrate de importar estos de 'antd'
+import { Statistic } from "antd";
 import { ShoppingBag, User, Package } from "lucide-react";
 import dayjs from "dayjs";
 import { listarPedidos, agregarPedido } from "../features/pedidos.slice";
@@ -45,6 +46,8 @@ function ListaPedidos() {
   const [clienteEncontrado, setClienteEncontrado] = useState(null);
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
   const [buscandoCliente, setBuscandoCliente] = useState(false);
+  const { RangePicker } = DatePicker;
+  const [dateRange, setDateRange] = useState(null);
 
   const navigate = useNavigate();
 
@@ -55,10 +58,21 @@ function ListaPedidos() {
   const pedidosFiltrados = lista.filter((c) => {
     const nombres = c.Cliente.nombres.toLowerCase();
     const apellidos = c.Cliente.apellidos.toLowerCase();
-
     const search = searchText.toLowerCase();
 
-    return nombres.includes(search) || apellidos.includes(search);
+    const coincideNombre =
+      nombres.includes(search) || apellidos.includes(search);
+
+    let coincideFecha = true;
+    if (dateRange && dateRange[0] && dateRange[1]) {
+      const fechaPedido = dayjs(c.fecha);
+      const inicio = dateRange[0].startOf("day");
+      const fin = dateRange[1].endOf("day");
+
+      coincideFecha = fechaPedido.isAfter(inicio) && fechaPedido.isBefore(fin);
+    }
+
+    return coincideNombre && coincideFecha;
   });
 
   useEffect(() => {
@@ -315,6 +329,7 @@ function ListaPedidos() {
         toast.success("Cliente vinculado al pedido");
       } else {
         toast.info("El cliente no existe. Por favor, registre el cliente");
+        setClienteEncontrado(null);
       }
       setBuscandoCliente(false);
     }, 800);
@@ -427,7 +442,6 @@ function ListaPedidos() {
     dispatch(agregarPedido(dataPedido))
       .unwrap()
       .then((res) => {
-        console.log("Pedido agregado:", res);
         toast.success(res.message);
       })
       .catch((err) => {
@@ -438,7 +452,6 @@ function ListaPedidos() {
     console.log("Enviando Pedido:", dataPedido);
 
     try {
-      toast.success("Pedido guardado exitosamente");
       setAddPedidoModalVisible(false);
       setProductosSeleccionados([]);
       setClienteEncontrado(null);
@@ -485,6 +498,33 @@ function ListaPedidos() {
               }
               className="rounded-xl h-10 border-gray-100 bg-gray-50/50 hover:bg-white focus:bg-white transition-all duration-300 shadow-inner-sm"
               allowClear
+            />
+          </div>
+
+          <div className="min-w-[280px]">
+            <RangePicker
+              placeholder={["Inicio", "Fin"]}
+              className="rounded-xl h-10 border-gray-100 bg-gray-50/50 hover:bg-white transition-all w-full"
+              onChange={(values) => {
+                setDateRange(values);
+                setCurrentPage(1);
+              }}
+              presets={[
+                { label: "Hoy", value: [dayjs(), dayjs()] },
+                {
+                  label: "Este Mes",
+                  value: [dayjs().startOf("month"), dayjs().endOf("month")],
+                },
+                {
+                  label: "Este Año",
+                  value: [dayjs().startOf("year"), dayjs().endOf("year")],
+                },
+                {
+                  label: "Últimos 90 días",
+                  value: [dayjs().subtract(90, "d"), dayjs()],
+                },
+              ]}
+              format="DD/MM/YYYY"
             />
           </div>
         </div>

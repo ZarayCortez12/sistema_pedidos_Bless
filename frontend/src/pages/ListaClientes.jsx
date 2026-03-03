@@ -34,6 +34,7 @@ import dayjs from "dayjs";
 
 function ListaClientes() {
   const dispatch = useDispatch();
+  const usuario = useSelector((state) => state.usuario.usuario);
   const clientes = useSelector((state) => state.clientes.clientes);
   //const pedidosCliente = useSelector((state) => state.pedidos.pedidosCliente);
 
@@ -70,6 +71,7 @@ function ListaClientes() {
   });
 
   useEffect(() => {
+    if (!usuario) dispatch(obtenerUsuarioActual());
     document.title = "Organización Bless | Clientes";
     dispatch(listarClientes())
       .unwrap()
@@ -198,7 +200,7 @@ function ListaClientes() {
       }),
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="Visualizar Información">
+          <Tooltip title={"Visualizar Información"}>
             <Button
               type="text"
               className="text-emerald-600! hover:text-emerald-700!"
@@ -206,28 +208,42 @@ function ListaClientes() {
               onClick={() => handleViewClick(record)}
             />
           </Tooltip>
-          <Tooltip title="Editar">
+          <Tooltip
+            title={
+              usuario.rol_activo !== "administrador"
+                ? "Acción no permitida"
+                : "Editar"
+            }
+          >
             <Button
+              disabled={usuario.rol_activo !== "administrador"}
               type="text"
-              icon={
-                <Pencil
-                  size={18}
-                  className="text-blue-600! hover:text-blue-700!"
-                />
-              }
+              className={`text-blue-600! hover:text-blue-700! ${
+                usuario.rol_activo !== "administrador"
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              icon={<Pencil size={18} />}
               onClick={() => handleEditClick(record)}
             />
           </Tooltip>
 
-          <Tooltip title="Eliminar">
+          <Tooltip
+            title={
+              usuario.rol_activo !== "administrador"
+                ? "Acción no permitida"
+                : "Eliminar"
+            }
+          >
             <Button
+              disabled={usuario.rol_activo !== "administrador"}
               type="text"
-              icon={
-                <Trash2
-                  size={18}
-                  className="text-red-500! hover:text-red-600!"
-                />
-              }
+              className={`text-red-500! hover:text-red-600! ${
+                usuario.rol_activo !== "administrador"
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              icon={<Trash2 size={18} />}
               onClick={() => handleEliminarCliente(record)}
             />
           </Tooltip>

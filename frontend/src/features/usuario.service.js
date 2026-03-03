@@ -26,9 +26,13 @@ const obtenerUsuarioActual = async () => {
 
 const refreshAccessToken = async () => {
   try {
-    const response = await axios.post(`${base_url}/usuario/refresh-token`, {
-      withCredentials: true,
-    });
+    const response = await axios.post(
+      `${base_url}/usuario/refresh-token`,
+      {},
+      {
+        withCredentials: true,
+      },
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -37,11 +41,17 @@ const refreshAccessToken = async () => {
 
 const logout = async () => {
   try {
-    const response = await axios.post(`${base_url}/usuario/logout`, {
-      withCredentials: true,
-    });
+    console.log("Logout de usuario");
+    const response = await axios.post(
+      `${base_url}/usuario/logout`,
+      {},
+      {
+        withCredentials: true,
+      },
+    );
     return response.data;
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };

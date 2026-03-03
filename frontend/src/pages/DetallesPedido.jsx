@@ -29,7 +29,9 @@ function DetallesPedido() {
       .unwrap()
       .then((res) => {
         console.log("Detalles del pedido:", res);
-        toast.success(res.message);
+        toast.success(res.message, {
+          toastId: "detalles-pedido",
+        });
       })
       .catch((err) => {
         console.error("Error al cargar detalles del pedido:", err);
@@ -132,9 +134,9 @@ function DetallesPedido() {
       onHeaderCell: () => ({
         className: "uppercase tracking-wider font-inter",
       }),
-      render: (precio) => (
+      render: (_, record) => (
         <span className="text-gray-600 font-medium">
-          ${precio?.toLocaleString()}
+          ${record.tallas[0]?.precio_unitario?.toLocaleString()}
         </span>
       ),
     },

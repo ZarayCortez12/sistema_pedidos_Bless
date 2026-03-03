@@ -49,7 +49,7 @@ function ExpireModal({ onConfirm, onCancel }) {
             Sesión por expirar
           </h2>
           <p style={{ marginBottom: "24px" }}>
-            Tu sesión esta proxima a vencer, por favor vuelva a iniciar sesión para segir realizando acciones en el sistema
+            Tu sesión esta proxima a vencer, por favor vuelva a iniciar sesión para seguir realizando acciones en el sistema
           </p>
           <div
             style={{

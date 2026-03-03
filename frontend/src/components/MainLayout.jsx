@@ -17,6 +17,7 @@ import Logo_Completo from "../images/logo-bless.jpg";
 import { useMenusPorRol } from "../utils/menuConfig";
 import ScrollToTop from "./ScrollToTop";
 import { obtenerUsuarioActual } from "../features/usuario.slice";
+import { logout } from "../features/usuario.slice";
 
 const { Header, Sider, Content } = Layout;
 
@@ -41,6 +42,7 @@ function MainLayout() {
 
   const handleLogout = () => {
     toast.info("Cerrando sesión...");
+    dispatch(logout());
     setTimeout(() => {
       navigate("/");
     }, 1000);

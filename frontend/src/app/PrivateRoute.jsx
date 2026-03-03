@@ -35,7 +35,6 @@ const PrivateRoute = ({ allowedRoles }) => {
     );
   }
 
-  // Redirige si no tiene rol permitido
   if (allowedRoles && !allowedRoles.includes(usuario.rol_activo)) {
     return <Navigate to="/" replace />;
   }
