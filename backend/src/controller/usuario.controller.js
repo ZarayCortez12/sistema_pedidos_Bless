@@ -143,8 +143,6 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    //console.log("Usuario que va a devolver:", payload);
-
     res.json({
       message: "Inicio de sesión exitoso",
       usuario: payload,
@@ -165,6 +163,9 @@ const obtenerUsuarioActual = async (req, res) => {
     console.log("Aca estamos");
 
     decoded = jwt.verify(req.cookies.accessToken, process.env.JWT_SECRET);
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiresIn = decoded.exp - currentTime;
 
     console.log("Token decodificado:", decoded);
 
@@ -203,6 +204,7 @@ const obtenerUsuarioActual = async (req, res) => {
         rol_activo: decoded.data.rol_activo,
         roles: rolesLimpios,
       },
+      expiresIn: expiresIn > 0 ? expiresIn : 0,
     });
   } catch (error) {
     return res.status(500).json({ message: "Error del servidorXXX" });
@@ -210,6 +212,7 @@ const obtenerUsuarioActual = async (req, res) => {
 };
 
 const refreshAccessToken = (req, res) => {
+  console.log("Refresh token:", req.cookies.refreshToken);
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
     return res.status(401).json({ message: "No hay refresh token" });
@@ -218,18 +221,32 @@ const refreshAccessToken = (req, res) => {
   jwt.verify(refreshToken, process.env.REFRESH_SECRET, async (err, payload) => {
     if (err) return res.status(403).json({ message: "Refresh inválido" });
     const usuarioRefresh = payload.data;
+    console.log("Usuario refrescado:", usuarioRefresh);
 
     try {
       const usuario = await Usuario.findOne({
-        where: { id_usuario: usuarioRefresh.id },
+        where: { id: usuarioRefresh.id },
         include: [
           {
-            model: Rol,
-            attributes: ["id_rol", "nombre_rol"],
-            through: {
-              attributes: [],
-              where: { estado_rol: "activo" },
-            },
+            model: UsuarioRol,
+            as: "roles",
+            include: [
+              {
+                model: Rol,
+                attributes: ["id", "nombre"],
+              },
+            ],
+          },
+
+          {
+            model: BloqueoUsuario,
+            as: "bloqueo",
+            attributes: [
+              "id",
+              "usuarioId",
+              "intentosFallidos",
+              "bloqueadoHasta",
+            ],
           },
         ],
       });
@@ -238,33 +255,24 @@ const refreshAccessToken = (req, res) => {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
 
-      const rolesLimpios = usuario.Rols.map((rol) => ({
-        id_rol: rol.id_rol,
-        nombre_rol: rol.nombre_rol,
+      const rolesLimpios = usuario.roles.map((rol) => ({
+        id: rol.Rol.id,
+        nombre: rol.Rol.nombre,
       }));
 
-      const rolActivo =
-        rolesLimpios.length > 0 ? rolesLimpios[0].nombre_rol : null;
+      const rolActivo = rolesLimpios.length > 0 ? rolesLimpios[0].nombre : null;
 
-      const payloadData = {
-        id: usuario.id_usuario,
-        tipo_documento: usuario.tipo_documento,
-        numero_documento: usuario.numero_documento,
-        primer_nombre: usuario.primer_nombre,
-        segundo_nombre: usuario.segundo_nombre,
-        primer_apellido: usuario.primer_apellido,
-        segundo_apellido: usuario.segundo_apellido,
-        correo: usuario.correo_electronico,
-        fecha_nacimiento: usuario.fecha_nacimiento,
-        telefono: usuario.telefono,
-        codigo_institucional: usuario.codigo_institucional,
-        genero: usuario.genero,
-        nivel_educativo: usuario.nivel_estudio_superior,
-        fecha_registro: usuario.fecha_registro,
+      const payload = {
+        id: usuario.id,
+        documento: usuario.documento,
+        nombres: usuario.nombres,
+        apellidos: usuario.apellidos,
+        email: usuario.email,
+        rol_activo: rolActivo,
         roles: rolesLimpios,
       };
 
-      const { token: accessToken, expiresIn } = getToken(payloadData);
+      const { token: accessToken, expiresIn } = getToken(payload);
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
@@ -275,10 +283,11 @@ const refreshAccessToken = (req, res) => {
 
       res.json({
         message: "Sesión extendida correctamente",
-        usuario: payloadData,
+        usuario: payload,
         expiresIn,
       });
     } catch (error) {
+      console.log(error);
       res.status(500).json({ message: "Error al refrescar sesión" });
     }
   });
@@ -286,6 +295,7 @@ const refreshAccessToken = (req, res) => {
 
 const logout = (req, res) => {
   try {
+    console.log("Logout:");
     res.clearCookie("accessToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -300,6 +310,7 @@ const logout = (req, res) => {
 
     return res.json({ message: "Sesión cerrada correctamente" });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Error al cerrar sesión" });
   }
 };

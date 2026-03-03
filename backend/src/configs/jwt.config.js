@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
 
 const getToken = (payload) => {
-  const expiresInSeconds = 60 * 60; // 60 minutos → 3600segundos
+  const expiresInSeconds = 60 * 60;
+  //const expiresInSeconds = 60 * 2;
 
   const token = jwt.sign({ data: payload }, process.env.JWT_SECRET, {
     expiresIn: expiresInSeconds,
@@ -9,7 +10,7 @@ const getToken = (payload) => {
 
   return {
     token,
-    expiresIn: expiresInSeconds, // lo enviamos al frontend
+    expiresIn: expiresInSeconds,
   };
 };
 
